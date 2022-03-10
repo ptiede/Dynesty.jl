@@ -4,6 +4,16 @@ module Dynesty
 using PyCall
 using StatsBase
 
+export NestedSampler,
+       DynamicNestedSampler,
+       runplot,
+       traceplot,
+       cornerpoints,
+       cornerplot,
+       boundplot,
+       cornerbound,
+       sample, resample_equal
+
 const dynesty = PyNULL()
 
 """
@@ -32,22 +42,27 @@ smplr = NestedSampler(10)
 res = sample(loglikelihood, prior_transform, smplr; dlogz=0.5)
 ```
 """
-Base.@kwdef struct NestedSampler{P,R,D,G}
+Base.@kwdef struct NestedSampler
     ndim::Int
     nlive::Int = 500
     bound::String = "multi"
     sample::String = "auto"
-    periodic::P = nothing
-    reflective::R = nothing
-    update_interval::Float64
-    first_update::D = nothing
-    gradient::G = nothing
+    periodic = nothing
+    reflective = nothing
+    update_interval::Float64 = 1.5
+    first_update = nothing
+    gradient = nothing
     rwalks::Int = 25
     facc::Float64 = 0.5
     slices::Int = 5
     fmove::Float64 = 0.9
     max_move::Int = 100
 end
+
+function NestedSampler(ndim::Int; kwargs...)
+    return NestedSampler(;ndim=ndim, kwargs...)
+end
+
 
 """
     `DyamicNestedSampler`
@@ -70,21 +85,27 @@ smplr = NestedSampler(10)
 res = sample(loglikelihood, prior_transform, smplr; dlogz=0.5, nlive_init=500)
 ```
 """
-Base.@kwdef struct DynamicNestedSampler{P,R,D,G}
+Base.@kwdef struct DynamicNestedSampler
     ndim::Int
     bound::String = "multi"
     sample::String = "auto"
-    periodic::P = nothing
-    reflective::R = nothing
-    update_interval::Float64
-    first_update::D = nothing
-    gradient::G = nothing
+    periodic = nothing
+    reflective = nothing
+    update_interval::Float64 = 1.5
+    first_update = nothing
+    gradient = nothing
     rwalks::Int = 25
     facc::Float64 = 0.5
     slices::Int = 5
     fmove::Float64 = 0.9
     max_move::Int = 100
 end
+
+function DynamicNestedSampler(ndim::Int; kwargs...)
+    return DynamicNestedSampler(;ndim=ndim, kwargs...)
+end
+
+
 
 """
     DynestyOutput
@@ -129,15 +150,22 @@ Base.keys(d::DynestyOutput) = keys(d.dict)
 Base.get(f::Function, d::DynestyOutput, key) = get(f, d.dict, key)
 Base.values(d::DynestyOutput) = values(d.dict)
 
-function StatsBase.sample(loglikelihood, prior_transform, s::NestedSampler, kwargs...)
+"""
+    `sample(loglikelihood, prior_transform, s::NestedSampler; kwargs...)`
+
+Runs dynesty's NestedSampler algorithm with the specified loglikelihood and prior_transform.
+The loglikelihood and prior_transform are functions. For the specific relevant kwargs see the
+dynesty documentation at [https://dynesty.readthedocs.io/]
+"""
+function StatsBase.sample(loglikelihood, prior_transform, s::NestedSampler; kwargs...)
     dysampler = dynesty.NestedSampler(loglikelihood,
                                       prior_transform,
                                       s.ndim,;
                                       nlive = s.nlive,
                                       bound = s.bound,
                                       sample = s.sample,
-                                      s.periodic = s.periodic,
-                                      s.reflective = s.reflective,
+                                      periodic = s.periodic,
+                                      reflective = s.reflective,
                                       update_interval = s.update_interval,
                                       first_update = s.first_update,
                                       gradient = s.gradient,
@@ -151,14 +179,21 @@ function StatsBase.sample(loglikelihood, prior_transform, s::NestedSampler, kwar
     return DynestyOutput(dysampler.results, dysampler)
 end
 
-function StatsBase.sample(loglikelihood, prior_transform, s::DynamicNestedSampler, kwargs...)
-    dysampler = dynesty.NestedSampler(loglikelihood,
+"""
+    `sample(loglikelihood, prior_transform, s::DynamicNestedSampler; kwargs...)`
+
+Runs dynesty's DynamicNestedSampler algorithm with the specified loglikelihood and prior_transform.
+The loglikelihood and prior_transform are functions. For the specific relevant kwargs see the
+dynesty documentation at [https://dynesty.readthedocs.io/]
+"""
+function StatsBase.sample(loglikelihood, prior_transform, s::DynamicNestedSampler; kwargs...)
+    dysampler = dynesty.DynamicNestedSampler(loglikelihood,
                                       prior_transform,
                                       s.ndim,;
                                       bound = s.bound,
                                       sample = s.sample,
-                                      s.periodic = s.periodic,
-                                      s.reflective = s.reflective,
+                                      periodic = s.periodic,
+                                      reflective = s.reflective,
                                       update_interval = s.update_interval,
                                       first_update = s.first_update,
                                       gradient = s.gradient,
@@ -172,15 +207,24 @@ function StatsBase.sample(loglikelihood, prior_transform, s::DynamicNestedSample
     return DynestyOutput(dysampler.results, dysampler)
 end
 
-function resample_equal(d::DynestyOutput, nsamples)
-    res = d.dict
+function resample_equal(res::DynestyOutput, nsamples)
     samples, weights = res["samples"], exp.(res["logwt"] .- res["logz"][end])
-    sample(samples, Weights(weights), nsamples)
+    sample(collect(eachrow(samples)), Weights(weights), nsamples)
 end
 
-function Base.merge(args::DynestyOutput..., print_progress=true)
-    runs = collect(args)
-    return dynesty.utils.merge_runs(runs; print_progress)
+"""
+    merge(args::DynestyOutput...; print_progres=true)
+Runs dynesty's merge_runs to combine multiple separate dynesty runs.
+"""
+function Base.merge(args::DynestyOutput...; print_progress=true)
+    runs = getproperty.([args...], :dict)
+    return DynestyOutput(py"merge"(runs; print_progress), nothing)
+end
+
+
+function ess(res::DynestyOutput)
+    weights = exp.(res["logwt"] .- res["logz"][end])
+    return inv(sum(abs2, weights))
 end
 
 
@@ -194,8 +238,9 @@ for P in PLOTS
         For a list of possible kwargs see the dynesty documentation at
         [dynesty.readthedocs.io]
         """
-        function ($P)(d::DynestyOutput; kwargs...)
-            dyplot.($P)(d.dict; kwargs...)
+        function ($P)(d::DynestyOutput, args...; kwargs...)
+            f = getproperty(dyplot, Symbol($P))
+            f(d.dict, args...; kwargs...)
         end
     end
 end
@@ -207,8 +252,16 @@ end
 
 
 function __init__()
-    copy!(dynesty, pyimport_conda("dynesty"))
+    copy!(dynesty, pyimport_conda("dynesty","dynesty"))
     copy!(dyplot, pyimport("dynesty.plotting"))
+    # Define a hack to get merge to work without doing silly dict conversion
+    py"""
+    import dynesty
+    def merge(x, print_progress=True):
+        xres = [dynesty.results.Results(r) for r in x]
+        mruns = dynesty.utils.merge_runs(xres, print_progress)
+        return mruns
+    """
 end
 
 end
