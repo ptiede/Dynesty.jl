@@ -207,7 +207,14 @@ function StatsBase.sample(loglikelihood, prior_transform, s::DynamicNestedSample
     return DynestyOutput(dysampler.results, dysampler)
 end
 
-function resample_equal(res::DynestyOutput, nsamples)
+"""
+    resample_equal(res::DynestyOutput, nsamples::Int)
+Resample the `dynesty` nested sampling run so that the samples have equal weighting.
+This uses the `StatsBase` algorithm under the hood.
+
+The results are a vector of vectors where the inner vector corresponds to the samples.
+"""
+function resample_equal(res::DynestyOutput, nsamples::Int)
     samples, weights = res["samples"], exp.(res["logwt"] .- res["logz"][end])
     sample(collect(eachrow(samples)), Weights(weights), nsamples)
 end
@@ -221,7 +228,7 @@ function Base.merge(args::DynestyOutput...; print_progress=true)
     return DynestyOutput(py"merge"(runs; print_progress), nothing)
 end
 
-
+# internal ess estimator
 function ess(res::DynestyOutput)
     weights = exp.(res["logwt"] .- res["logz"][end])
     return inv(sum(abs2, weights))
