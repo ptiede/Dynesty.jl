@@ -29,8 +29,8 @@ using Distributions
     cornerbound(res1, it=100)
     cornerpoints(res1)
 
-    esamples = resample_equal(res1, Int(ceil(2*Dynesty.ess(res1))))
+    esamples = resample_equal(res3, Int(ceil(2*Dynesty.ess(res1))))
 
-    @test isapprox(mean(getindex.(esamples, 1)), mean(d)[1], atol=1e-2)
+    @test isapprox(mean(getindex.(esamples, 1)), mean(d)[1], atol=1e-1)
 
 end
