@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Dynesty = "eb527566-0f3e-4aab-bb5f-9d2e403dba70"
