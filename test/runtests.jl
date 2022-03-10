@@ -14,13 +14,13 @@ using Distributions
     smplr = NestedSampler(10; nlive=2000)
     dysmplr = DynamicNestedSampler(10)
     # sample using dynamic nested sampling with 500 initial live points
-    res1 = sample(loglikelihood, prior_transform, smplr; dlogz=0.5)
-    res2 = sample(loglikelihood, prior_transform, smplr; dlogz=0.5)
-    res3 = sample(loglikelihood, prior_transform, smplr; dlogz=0.5)
+    res1 = sample(loglikelihood, prior_transform, smplr; dlogz=0.5, print_progress=false)
+    res2 = sample(loglikelihood, prior_transform, smplr; dlogz=0.5, print_progress=false)
+    res3 = sample(loglikelihood, prior_transform, smplr; dlogz=0.5, print_progress=false)
 
     mres = Dynesty.merge(res1, res2, res3)
 
-    res = sample(loglikelihood, prior_transform, dysmplr; nlive_init=200)
+    res = sample(loglikelihood, prior_transform, dysmplr; nlive_init=200, print_progress=false)
 
     runplot(res1)
     cornerplot(res1)
