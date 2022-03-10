@@ -33,7 +33,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.arch }}
       - run: python -m pip install --upgrade pip
-      - run: python -m pip install dynesty numpy
+      - run: python -m pip install dynesty numpy scipy matplotlib six h5py
 
       - uses: julia-actions/setup-julia@v1
         with:
