@@ -12,7 +12,7 @@ This is built on PyCall and imports a lot of the functionality of dynesty. There
 
 # Example
 
-Here we will sample a 5 dimensional Gaussian restricted to the domain [-5,5]<sup>5</sup>
+Here we will sample a 5 dimensional Gaussian restricted to the domain [-10,10]<sup>5</sup>
 
 ```julia
 using Distributions
