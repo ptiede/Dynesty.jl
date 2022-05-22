@@ -52,7 +52,7 @@ Base.@kwdef struct NestedSampler
     update_interval::Float64 = 1.5
     first_update = nothing
     gradient = nothing
-    rwalks::Int = 25
+    walks::Int = 25
     facc::Float64 = 0.5
     slices::Int = 5
     fmove::Float64 = 0.9
