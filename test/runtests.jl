@@ -5,18 +5,18 @@ using Distributions
 @testset "Dynesty.jl" begin
     # Write your tests here.
     # define a distribution
-    d = MvNormal(ones(10))
+    d = MvNormal(ones(5))
 
     loglikelihood(x) = logpdf(d, x)
 
     prior_transform(p) = -5.0 .+ 10.0.*p
 
-    smplr = NestedSampler(10; nlive=2000)
-    dysmplr = DynamicNestedSampler(10)
+    smplr = NestedSampler(5; nlive=1000)
+    dysmplr = DynamicNestedSampler(5)
     # sample using dynamic nested sampling with 500 initial live points
-    res1 = sample(loglikelihood, prior_transform, smplr; dlogz=0.5, print_progress=false)
-    res2 = sample(loglikelihood, prior_transform, smplr; dlogz=0.5, print_progress=false)
-    res3 = sample(loglikelihood, prior_transform, smplr; dlogz=0.5, print_progress=false)
+    res1 = sample(loglikelihood, prior_transform, smplr; dlogz=0.01, print_progress=false)
+    res2 = sample(loglikelihood, prior_transform, smplr; dlogz=0.01, print_progress=false)
+    res3 = sample(loglikelihood, prior_transform, smplr; dlogz=0.01, print_progress=false)
 
     mres = Dynesty.merge(res1, res2, res3)
 

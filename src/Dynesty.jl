@@ -215,8 +215,9 @@ This uses the `StatsBase` algorithm under the hood.
 The results are a vector of vectors where the inner vector corresponds to the samples.
 """
 function resample_equal(res::DynestyOutput, nsamples::Int)
-    samples, weights = res["samples"], exp.(res["logwt"] .- res["logz"][end])
-    sample(collect(eachrow(samples)), Weights(weights), nsamples)
+    samples, weights = res["samples"].T, exp.(res["logwt"].T .- res["logz"][end])
+    println(size(eachcol(samples)))
+    sample(collect(eachcol(samples)), Weights(weights), nsamples)
 end
 
 """
@@ -225,7 +226,7 @@ Runs dynesty's merge_runs to combine multiple separate dynesty runs.
 """
 function Base.merge(args::DynestyOutput...; print_progress=true)
     runs = getproperty.([args...], :dict)
-    return DynestyOutput(py"merge"(runs; print_progress), nothing)
+    return dynesty.utils.merge_runs(runs; print_progress)
 end
 
 # internal ess estimator
@@ -262,13 +263,14 @@ function __init__()
     copy!(dynesty, pyimport_conda("dynesty","dynesty"))
     copy!(dyplot, pyimport("dynesty.plotting"))
     # Define a hack to get merge to work without doing silly dict conversion
-    py"""
-    import dynesty
-    def merge(x, print_progress=True):
-        xres = [dynesty.results.Results(r) for r in x]
-        mruns = dynesty.utils.merge_runs(xres, print_progress)
-        return mruns
-    """
+    # Not needed for new versions
+    #py"""
+    #import dynesty
+    #def merge(x, print_progress=True):
+    #    xres = [dynesty.results.Results(r) for r in x]
+    #    mruns = dynesty.utils.merge_runs(xres, print_progress)
+    #    return mruns
+    #"""
 end
 
 end
