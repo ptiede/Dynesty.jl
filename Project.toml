@@ -1,7 +1,7 @@
 name = "Dynesty"
 uuid = "eb527566-0f3e-4aab-bb5f-9d2e403dba70"
 authors = ["Paul Tiede <ptiede91@gmail.com> and contributors"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
