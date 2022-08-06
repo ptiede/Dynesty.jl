@@ -260,8 +260,8 @@ end
 
 
 function __init__()
-    copy!(dynesty, pyimport_conda("dynesty","dynesty"))
-    copy!(dyplot, dynesty.plotting)
+    copy!(dynesty, pyimport_conda("dynesty","dynesty","conda-forge"))
+    copy!(dyplot, pyimport_e("dynesty.plotting"))
     # Define a hack to get merge to work without doing silly dict conversion
     # Not needed for new versions
     #py"""
