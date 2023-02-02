@@ -12,7 +12,7 @@ export NestedSampler,
        cornerplot,
        boundplot,
        cornerbound,
-       sample, resample_equal
+       dysample, resample_equal
 
 const dynesty = PyNULL()
 
@@ -145,7 +145,7 @@ struct DynestyOutput{D,S}
     sampler::S
 end
 
-Base.getindex(d::DynestyOutput, key) = getindex(d.dict, key)
+Base.getindex(d::DynestyOutput, key) = getproperty(d.dict, key)
 Base.keys(d::DynestyOutput) = keys(d.dict)
 Base.get(f::Function, d::DynestyOutput, key) = get(f, d.dict, key)
 Base.values(d::DynestyOutput) = values(d.dict)
@@ -157,7 +157,7 @@ Runs dynesty's NestedSampler algorithm with the specified loglikelihood and prio
 The loglikelihood and prior_transform are functions. For the specific relevant kwargs see the
 dynesty documentation at [https://dynesty.readthedocs.io/]
 """
-function StatsBase.sample(loglikelihood, prior_transform, s::NestedSampler; kwargs...)
+function dysample(loglikelihood, prior_transform, s::NestedSampler; kwargs...)
     dysampler = dynesty.NestedSampler(loglikelihood,
                                       prior_transform,
                                       s.ndim,;
@@ -186,7 +186,7 @@ Runs dynesty's DynamicNestedSampler algorithm with the specified loglikelihood a
 The loglikelihood and prior_transform are functions. For the specific relevant kwargs see the
 dynesty documentation at [https://dynesty.readthedocs.io/]
 """
-function StatsBase.sample(loglikelihood, prior_transform, s::DynamicNestedSampler; kwargs...)
+function dysample(loglikelihood, prior_transform, s::DynamicNestedSampler; kwargs...)
     dysampler = dynesty.DynamicNestedSampler(loglikelihood,
                                       prior_transform,
                                       s.ndim,;
