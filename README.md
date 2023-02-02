@@ -27,7 +27,7 @@ prior_transform(p) = -10.0 .+ 20.0.*p
 
 smplr = NestedSampler(ndim)
 
-res = sample(loglikelihood, prior_transform, smplr; dlogz=0.5)
+res = dysample(loglikelihood, prior_transform, smplr; dlogz=0.5)
 
 # plot the results
 cornerplot(res)
