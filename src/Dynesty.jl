@@ -1,7 +1,7 @@
 module Dynesty
 
 # Write your package code here.
-using PyCall
+using PythonCall
 using StatsBase
 
 export NestedSampler,
@@ -14,13 +14,13 @@ export NestedSampler,
        cornerbound,
        dysample, resample_equal
 
-const dynesty = PyNULL()
+const dynesty = PythonCall.pynew()
 
 """
     `dyplot`
 Object that holds the plotting submodule of the `dynesty` package
 """
-const dyplot = PyNULL()
+const dyplot = PythonCall.pynew()
 
 """
     `NestedSampler`
@@ -215,9 +215,10 @@ This uses the `StatsBase` algorithm under the hood.
 The results are a vector of vectors where the inner vector corresponds to the samples.
 """
 function resample_equal(res::DynestyOutput, nsamples::Int)
-    samples, weights = res["samples"].T, exp.(res["logwt"].T .- res["logz"][end])
-    println(size(eachcol(samples)))
-    sample(collect(eachcol(samples)), Weights(weights), nsamples)
+    samples = pyconvert(Array, res["samples"])
+    weights = exp.(pyconvert(Vector, res["logwt"] - res["logz"][-1]))
+    samples, weights = pyconvert(Array, res["samples"].T), exp.(pyconvert(Vector, res["logwt"].T - res["logz"][-1]))
+    return sample(collect(eachcol(samples)), Weights(weights), nsamples)
 end
 
 """
@@ -226,12 +227,12 @@ Runs dynesty's merge_runs to combine multiple separate dynesty runs.
 """
 function Base.merge(args::DynestyOutput...; print_progress=true)
     runs = getproperty.([args...], :dict)
-    return dynesty.utils.merge_runs(runs; print_progress)
+    return DynestyOutput(dynesty.utils.merge_runs(runs; print_progress), nothing)
 end
 
 # internal ess estimator
 function ess(res::DynestyOutput)
-    weights = exp.(res["logwt"] .- res["logz"][end])
+    weights = exp.(pyconvert(Vector, res["logwt"] - res["logz"][-1]))
     return inv(sum(abs2, weights))
 end
 
@@ -260,8 +261,8 @@ end
 
 
 function __init__()
-    copy!(dynesty, pyimport_conda("dynesty","dynesty","conda-forge"))
-    copy!(dyplot, pyimport_e("dynesty.plotting"))
+    PythonCall.pycopy!(dynesty, pyimport("dynesty"))
+    PythonCall.pycopy!(dyplot,  pyimport("dynesty.plotting"))
     # Define a hack to get merge to work without doing silly dict conversion
     # Not needed for new versions
     #py"""
