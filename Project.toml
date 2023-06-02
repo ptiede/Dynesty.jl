@@ -1,7 +1,7 @@
 name = "Dynesty"
 uuid = "eb527566-0f3e-4aab-bb5f-9d2e403dba70"
 authors = ["Paul Tiede <ptiede91@gmail.com> and contributors"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 CondaPkg = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
