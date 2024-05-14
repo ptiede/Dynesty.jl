@@ -10,11 +10,11 @@
 
 A Julia interface to the python nested sampling library [dynesty](https://github.com/joshspeagle/dynesty)
 
-This is built on PyCall and imports a lot of the functionality of dynesty. There are some differences in the interface to make the code more "Julian".
+This is built on PythonCall and imports a lot of the functionality of dynesty. There are some differences in the interface to make the code more "Julian".
 
 # Example
 
-Here we will sample a 5 dimensional Gaussian restricted to the domain [-10,10]
+Here we will sample a 5-dimensional Gaussian restricted to the domain [-10,10]
 
 ```julia
 using Distributions
