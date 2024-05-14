@@ -37,7 +37,7 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: python -m pip install dynesty numpy scipy matplotlib six h5py
 
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
@@ -63,7 +63,7 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: python -m pip install dynesty numpy scipy matplotlib six h5py
 
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
           version: '1'
       - uses: julia-actions/julia-buildpkg@v1
