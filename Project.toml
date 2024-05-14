@@ -5,6 +5,7 @@ version = "0.4.0"
 
 [deps]
 CondaPkg = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
+DocumenterTools = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
 PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
