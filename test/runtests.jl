@@ -11,16 +11,16 @@ using Distributions
 
     prior_transform(p) = -5.0 .+ 10.0.*p
 
-    smplr = NestedSampler(5; nlive=1000)
-    dysmplr = DynamicNestedSampler(5)
+    smplr = NestedSampler(;nlive=1000)
+    dysmplr = DynamicNestedSampler()
     # sample using dynamic nested sampling with 500 initial live points
-    res1 = dysample(loglikelihood, prior_transform, smplr; dlogz=0.01, print_progress=false)
-    res2 = dysample(loglikelihood, prior_transform, smplr; dlogz=0.01, print_progress=false)
-    res3 = dysample(loglikelihood, prior_transform, smplr; dlogz=0.01, print_progress=false)
+    res1 = dysample(loglikelihood, prior_transform, 5, smplr; dlogz=0.01, print_progress=false)
+    res2 = dysample(loglikelihood, prior_transform, 5, smplr; dlogz=0.01, print_progress=false)
+    res3 = dysample(loglikelihood, prior_transform, 5, smplr; dlogz=0.01, print_progress=false)
 
     mres = Dynesty.merge(res1, res2, res3)
 
-    res = dysample(loglikelihood, prior_transform, dysmplr; nlive_init=200, print_progress=false)
+    res = dysample(loglikelihood, prior_transform, 5, dysmplr; nlive_init=200, print_progress=false)
 
     runplot(res1)
     cornerplot(res1)

@@ -26,7 +26,7 @@ const dyplot = PythonCall.pynew()
     `NestedSampler`
 Julia interface to the `dynesty` NestedSampler class. Note that we do
 not pass the loglikelihood or prior transform function here. Instead this
-is passed to the `sample`` call.
+is passed to the `dysample` call.
 
 # Example
 ```julia
@@ -37,13 +37,12 @@ loglikelihood(x) = logpdf(d, x)
 
 prior_transform(p) = -10.0 .+ 20.0.*p
 
-smplr = NestedSampler(10)
+smplr = NestedSampler()
 
-res = sample(loglikelihood, prior_transform, smplr; dlogz=0.5)
+res = sample(loglikelihood, prior_transform, 10, smplr; dlogz=0.5)
 ```
 """
 Base.@kwdef struct NestedSampler
-    ndim::Int
     nlive::Int = 500
     bound::String = "multi"
     sample::String = "auto"
@@ -59,16 +58,11 @@ Base.@kwdef struct NestedSampler
     max_move::Int = 100
 end
 
-function NestedSampler(ndim::Int; kwargs...)
-    return NestedSampler(;ndim=ndim, kwargs...)
-end
-
-
 """
-    `DyamicNestedSampler`
+    `DynamicNestedSampler`
 Julia interface to the `dynesty` DynamicNestedSampler class. Note that we do
 not pass the loglikelihood or prior transform function here. Instead this
-is passed to the `sample`` call.
+is passed to the `dysample` call.
 
 # Example
 ```julia
@@ -79,14 +73,13 @@ loglikelihood(x) = logpdf(d, x)
 
 prior_transform(p) = -10.0 .+ 20.0.*p
 
-smplr = NestedSampler(10)
+smplr = DynamicNestedSampler()
 
 # sample using dynamic nested sampling with 500 initial live points
-res = sample(loglikelihood, prior_transform, smplr; dlogz=0.5, nlive_init=500)
+res = sample(loglikelihood, prior_transform, 10, smplr; dlogz=0.5, nlive_init=500)
 ```
 """
 Base.@kwdef struct DynamicNestedSampler
-    ndim::Int
     bound::String = "multi"
     sample::String = "auto"
     periodic = nothing
@@ -100,11 +93,6 @@ Base.@kwdef struct DynamicNestedSampler
     fmove::Float64 = 0.9
     max_move::Int = 100
 end
-
-function DynamicNestedSampler(ndim::Int; kwargs...)
-    return DynamicNestedSampler(;ndim=ndim, kwargs...)
-end
-
 
 
 """
@@ -127,10 +115,10 @@ loglikelihood(x) = logpdf(d, x)
 # We only look at finite region of parameter space
 prior_transform(p) = -5.0 .+ 10.0.*p
 
-smplr = NestedSampler(10)
+smplr = NestedSampler()
 
 # sample using dynamic nested sampling with 500 initial live points
-res = sample(loglikelihood, prior_transform, smplr; dlogz=0.5, nlive_init=500)
+res = dysample(loglikelihood, prior_transform, 10, smplr; dlogz=0.5, nlive_init=500)
 
 # fetch the samples
 res[:samples]
@@ -151,16 +139,16 @@ Base.get(f::Function, d::DynestyOutput, key) = get(f, d.dict, key)
 Base.values(d::DynestyOutput) = values(d.dict)
 
 """
-    `sample(loglikelihood, prior_transform, s::NestedSampler; kwargs...)`
+    `sample(loglikelihood, prior_transform, ndim::Int, s::NestedSampler; kwargs...)`
 
 Runs dynesty's NestedSampler algorithm with the specified loglikelihood and prior_transform.
 The loglikelihood and prior_transform are functions. For the specific relevant kwargs see the
 dynesty documentation at [https://dynesty.readthedocs.io/]
 """
-function dysample(loglikelihood, prior_transform, s::NestedSampler; kwargs...)
+function dysample(loglikelihood, prior_transform, ndim::Int, s::NestedSampler; kwargs...)
     dysampler = dynesty.NestedSampler(loglikelihood,
                                       prior_transform,
-                                      s.ndim,;
+                                      ndim,;
                                       nlive = s.nlive,
                                       bound = s.bound,
                                       sample = s.sample,
@@ -180,16 +168,16 @@ function dysample(loglikelihood, prior_transform, s::NestedSampler; kwargs...)
 end
 
 """
-    `sample(loglikelihood, prior_transform, s::DynamicNestedSampler; kwargs...)`
+    `dysample(loglikelihood, prior_transform, ndim::Int, s::DynamicNestedSampler; kwargs...)`
 
 Runs dynesty's DynamicNestedSampler algorithm with the specified loglikelihood and prior_transform.
 The loglikelihood and prior_transform are functions. For the specific relevant kwargs see the
 dynesty documentation at [https://dynesty.readthedocs.io/]
 """
-function dysample(loglikelihood, prior_transform, s::DynamicNestedSampler; kwargs...)
+function dysample(loglikelihood, prior_transform, ndim::Int, s::DynamicNestedSampler; kwargs...)
     dysampler = dynesty.DynamicNestedSampler(loglikelihood,
                                       prior_transform,
-                                      s.ndim,;
+                                      ndim,;
                                       bound = s.bound,
                                       sample = s.sample,
                                       periodic = s.periodic,
@@ -263,15 +251,6 @@ end
 function __init__()
     PythonCall.pycopy!(dynesty, pyimport("dynesty"))
     PythonCall.pycopy!(dyplot,  pyimport("dynesty.plotting"))
-    # Define a hack to get merge to work without doing silly dict conversion
-    # Not needed for new versions
-    #py"""
-    #import dynesty
-    #def merge(x, print_progress=True):
-    #    xres = [dynesty.results.Results(r) for r in x]
-    #    mruns = dynesty.utils.merge_runs(xres, print_progress)
-    #    return mruns
-    #"""
 end
 
 end

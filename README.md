@@ -12,7 +12,7 @@ This is built on PyCall and imports a lot of the functionality of dynesty. There
 
 # Example
 
-Here we will sample a 5 dimensional Gaussian restricted to the domain [-10,10]<sup>5</sup>
+Here we will sample a 5 dimensional Gaussian restricted to the domain [-10,10]
 
 ```julia
 using Distributions
@@ -25,9 +25,9 @@ loglikelihood(x) = logpdf(d, x)
 
 prior_transform(p) = -10.0 .+ 20.0.*p
 
-smplr = NestedSampler(ndim)
+smplr = NestedSampler()
 
-res = dysample(loglikelihood, prior_transform, smplr; dlogz=0.5)
+res = dysample(loglikelihood, prior_transform, ndim, smplr; dlogz=0.5)
 
 # plot the results
 cornerplot(res)
