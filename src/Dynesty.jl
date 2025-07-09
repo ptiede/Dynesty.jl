@@ -48,12 +48,13 @@ Base.@kwdef struct NestedSampler
     sample::String = "auto"
     periodic = nothing
     reflective = nothing
-    update_interval::Float64 = 1.5
+    update_interval = nothing
     first_update = nothing
+    rstate = nothing
     gradient = nothing
-    walks::Int = 25
+    walks::Union{Int, Nothing} = nothing
     facc::Float64 = 0.5
-    slices::Int = 5
+    slices::Union{Int, Nothing} = nothing
     fmove::Float64 = 0.9
     max_move::Int = 100
 end
@@ -84,12 +85,13 @@ Base.@kwdef struct DynamicNestedSampler
     sample::String = "auto"
     periodic = nothing
     reflective = nothing
-    update_interval::Float64 = 1.5
+    update_interval = nothing
     first_update = nothing
+    rstate = nothing
     gradient = nothing
-    walks::Int = 25
+    walks::Union{Int, Nothing} = nothing
     facc::Float64 = 0.5
-    slices::Int = 5
+    slices::Union{Int, Nothing} = nothing
     fmove::Float64 = 0.9
     max_move::Int = 100
 end
@@ -156,6 +158,7 @@ function dysample(loglikelihood, prior_transform, ndim::Int, s::NestedSampler; k
                                       reflective = s.reflective,
                                       update_interval = s.update_interval,
                                       first_update = s.first_update,
+                                      rstate = s.rstate,
                                       gradient = s.gradient,
                                       walks = s.walks,
                                       facc = s.facc,
@@ -203,9 +206,8 @@ This uses the `StatsBase` algorithm under the hood.
 The results are a vector of vectors where the inner vector corresponds to the samples.
 """
 function resample_equal(res::DynestyOutput, nsamples::Int)
-    samples = pyconvert(Array, res["samples"])
-    weights = exp.(pyconvert(Vector, res["logwt"] - res["logz"][-1]))
-    samples, weights = pyconvert(Array, res["samples"].T), exp.(pyconvert(Vector, res["logwt"].T - res["logz"][-1]))
+    weights = pyconvert(Vector, res.dict.importance_weights())
+    samples = pyconvert(Array, res["samples"].T)
     return sample(collect(eachcol(samples)), Weights(weights), nsamples)
 end
 

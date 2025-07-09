@@ -9,6 +9,7 @@ using Distributions
 
     loglikelihood(x) = logpdf(d, x)
 
+    # Uniform prior from -5.0 to 5.0
     prior_transform(p) = -5.0 .+ 10.0.*p
 
     smplr = NestedSampler(;nlive=1000)
